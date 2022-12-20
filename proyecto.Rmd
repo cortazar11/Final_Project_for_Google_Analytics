@@ -81,9 +81,9 @@ Merged_Data_Frame <- merge ()
 
 # ACTUAR
 ```{r}
-setwd("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS")
+#setwd("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS")
 list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS') 
-df <- readr::read_csv(list_files)
+df <- read_csv(list_files)
 str(df)
 unique(df$rideable_type )
 unique(df$member_casual)
