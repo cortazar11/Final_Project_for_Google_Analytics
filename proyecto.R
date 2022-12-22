@@ -7,23 +7,27 @@ library(ggplot2)
 library(data.table)
 
 # df <- read.csv('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS/202004-divvy-tripdata.csv')
-# str(df)
-# list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS') 
-# list_files
-# months<-substr(list_files,0,6)
-# months
-# result <- lapply(list_files, function(x){
-#       df<-read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS/',x))
-#       class(df)
-#       #table(df$member_casual)
-#       
-# })
-# 
-# names(df) <- months
-# ggplot(data=df,aes(x=result$`202005`))+geom_bar()
 
 list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS')
 list_files
+
+# MAKING A DATAFRAME OF ALL THE FILES
+
+raw.files <- tibble(filename = list.files('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS'))
+raw.files
+
+raw.file.paths <- raw.files  %>%
+  mutate(filepath = paste0("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS", filename))
+raw.file.paths
+
+raw.data <- raw.file.paths %>%
+  rowwise() %>%
+  do(., read_csv(file=.$filepath))
+
+
+# CLEANING FILES
+
+
 # Concatenar ficheros para generar uno único del tercer trimestre de 2014
 datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[6]))
 datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[7]))
