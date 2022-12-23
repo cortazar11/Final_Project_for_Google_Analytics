@@ -64,6 +64,56 @@ En cuanto a las estaciones los datos disponibles van desde 2013 a 2017.
 
 Para el proceso de datos he elegido R. En primer lugar queria hacer los cálculos previos con sql (BigQuery de Google) para poder utilizar las diferentes herramientas aprendidas en el curso de Google Analytics. Sin embargo hay un problema con el tamaño de los ficheros a procesar. A partir de un tamaño superior a 100 Mb BigQuery no los sube; hay que subirlos en Google Cloud Storage y aqui hay que subscribirse. Así que para este caso realizaré todo el proceso en R. Ademas, RStudio permite el trabajar con R de una manera ágil, desde el punto inicial, la importación de datos, hasta el final la emision del informe en pdf o html.
 
+Lo primero es hacer homogeneos los ficheros, ya que hay algunos que se refieren a un trimestre, otros se refieren a meses, etc. Asi que los convertiremos todos a datos trimestrales.
+
+Asi mismo he subdividido todos los ficheros en tres directorios: en uno estan los viajes desde el 2013 hasta el primer trimestre de 2020, en otro los viajes desde el primer trimestre de 2020 hasta Noviembre 2022 y en un tercero datos relativos a las estaciones donde estan aparcadas las bicis, habiendo datos solo hasta 2017. Los dos primeros son relativos a los mismos datos, pero proceden de bases de datos diferentes por lo que los campos no coinciden.
+
+## Limpieza ficheros de viajes de 2013 a primer cuatrimestre 2014.
+
+### Concatenar ficheros para generar uno único del tercer trimestre de 2014
+
+```{r}
+datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[6]))
+datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[7]))
+datafile <- rbind(datafile1, datafile2)
+#write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2014_Q3.csv")
+```
+
+### Concatenar ficheros para generar un único del tercer trimestre de 2015
+
+```{r}
+datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[9]))
+datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[10]))
+datafile3 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[11]))
+
+datafile <- rbind(datafile1, datafile2, datafile3)
+#write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2015_Q3.csv")
+```
+
+### Concatenar ficheros para generar un único del segundo trimestre de 2016
+
+```{r}
+datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[14]))
+datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[15]))
+datafile3 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[16]))
+
+datafile <- rbind(datafile1, datafile2, datafile3)
+#write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2016_Q2.csv")
+```
+
+Una vez generados los nuevos cuatrimestres, nos deshacemos de los originales que no eran homogeneos con el resto de los datos. La lista definitiva de los ficheros en este directorio sería:
+
+```{r}
+list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS')
+list_files
+```
+
+Ahora a efectos de homogeneidad convertiremos el segundo directorio de viajes que viene como ficheros mensuales en ficheros trimestrales.
+
+```{r}
+list_files2 <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS')
+list_files2
+```
 
 
 
@@ -79,5 +129,3 @@ df <- read_csv(list_files)
 str(df)
 unique(df$rideable_type )
 unique(df$member_casual)
-  
-```
