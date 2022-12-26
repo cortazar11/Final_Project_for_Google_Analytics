@@ -150,10 +150,20 @@ lapply(list_files_years,
        function(x) {
          df<- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',x))
          names(df) <- c("trip_id","rideable_type" ,"starttime","stoptime" ,
-                            "from_station_name","from_station_id" ,"to_station_name" ,
-                            "to_station_id","start_lat" ,"start_lng" ,"end_lat" ,"end_lng",
-                            "usertype" )  
-      
+                        "from_station_name","from_station_id" ,"to_station_name" ,
+                        "to_station_id","start_lat" ,"start_lng" ,"end_lat" ,"end_lng",
+                        "usertype" )  
+         
          write.csv(df,paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',x),row.names=FALSE)
        }
-    )
+)
+
+# Data frame from list of files
+
+list_files_final <- list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2/')
+list_files_final
+
+
+df <- list.files(path = "/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2/", pattern = "*.csv") %>% 
+  map_df(~fread(.))
+df
