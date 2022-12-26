@@ -70,51 +70,80 @@ Asi mismo he subdividido todos los ficheros en tres directorios: en uno estan lo
 
 ## Limpieza ficheros de viajes de 2013 a primer cuatrimestre 2014.
 
-### Concatenar ficheros para generar uno único del tercer trimestre de 2014
+Antes que nada tenemos que juntar todos los ficheros con las mismas características, con lo que tendriamos dos grupos:
+uno el mas importante con las estaciones de partida, estaciones de llegada, tiempo en que se ha cogido la bicicleta en estación de partida, tiempo en que se deja la bicicleta en estación de llegada y tipo de usario (casual o con suscripcion anual). Para ello a efectos de homogeneidad reduciremos todos los ficheros a ficheros trimestrales, uniendo tres ficheros cuando estos son mensuales.
 
-```{r}
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[6]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[7]))
-datafile <- rbind(datafile1, datafile2)
-#write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2014_Q3.csv")
+El principal problema con este primer grupo es que estos ficheros proceden de dos bases de datos diferente en que los campos no coinciden exactamente, por lo que tendré que cambiar los nombres de los ficheros de la segunda base de datos para que coincidan con los de la primera.
+
+Abajo indico el código que he utilizado pero sin posibilidad de evaluacion, ya que los resultados derivan en nuevos ficheros que seran los que utilizaré para comenza el análisis.
+
+Para la union de ficheros mensuales en trimestrales y siguiente derivación en nuevos ficheros:
+
+```
+    datafile1 <- read.csv(*path*)
+    datafile2 <- read.csv(*path*)
+    datafile3 <- read.csv(*path*)
+    datafile <- rbind(datafile1, datafile2, datafile3)
+    write.csv(datafile,*path*)
+```
+Para el cambio en el nombre en los campos de ficheros de ls segunda base de datos ( a partir primer trimestre 2020) y siguiente derivación en nuvos ficheros:
+
+```
+lapply(list_files_years, 
+       function(x) {
+         df<- read.csv(*path*)
+         names(df) <- c("trip_id","rideable_type" ,"starttime","stoptime" ,
+                        "from_station_name","from_station_id" ,"to_station_name" ,
+                        "to_station_id","start_lat" ,"start_lng" ,"end_lat" ,"end_lng",
+                        "usertype" )  
+         
+         write.csv(df,*path*,row.names=FALSE)
+       }
+)
+
 ```
 
-### Concatenar ficheros para generar un único del tercer trimestre de 2015
 
-```{r}
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[9]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[10]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[11]))
+<!-- ### Concatenar ficheros para generar uno único del tercer trimestre de 2014 -->
 
-datafile <- rbind(datafile1, datafile2, datafile3)
-#write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2015_Q3.csv")
-```
+<!-- ```{r} -->
+<!-- datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[6])) -->
+<!-- datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[7])) -->
+<!-- datafile <- rbind(datafile1, datafile2) -->
+<!-- #write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2014_Q3.csv") -->
+<!-- ``` -->
 
-### Concatenar ficheros para generar un único del segundo trimestre de 2016
+<!-- ### Concatenar ficheros para generar un único del tercer trimestre de 2015 -->
 
-```{r}
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[14]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[15]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[16]))
+<!-- ```{r} -->
+<!-- datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[9])) -->
+<!-- datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[10])) -->
+<!-- datafile3 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[11])) -->
 
-datafile <- rbind(datafile1, datafile2, datafile3)
-#write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2016_Q2.csv")
-```
+<!-- datafile <- rbind(datafile1, datafile2, datafile3) -->
+<!-- #write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2015_Q3.csv") -->
+<!-- ``` -->
 
-Una vez generados los nuevos cuatrimestres, nos deshacemos de los originales que no eran homogeneos con el resto de los datos. La lista definitiva de los ficheros en este directorio sería:
+<!-- ### Concatenar ficheros para generar un único del segundo trimestre de 2016 -->
 
-```{r}
-list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS')
-list_files
-```
+<!-- ```{r} -->
+<!-- datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[14])) -->
+<!-- datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[15])) -->
+<!-- datafile3 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[16])) -->
 
-Ahora a efectos de homogeneidad convertiremos el segundo directorio de viajes que viene como ficheros mensuales en ficheros trimestrales.
+<!-- datafile <- rbind(datafile1, datafile2, datafile3) -->
+<!-- #write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2016_Q2.csv") -->
+<!-- ``` -->
 
-```{r}
-list_files2 <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS')
-list_files2
-```
+<!-- Una vez generados los nuevos cuatrimestres, nos deshacemos de los originales que no eran homogeneos con el resto de los datos. La lista definitiva de los ficheros en este directorio sería: -->
 
+<!-- ```{r} -->
+<!-- list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS') -->
+<!-- list_files -->
+<!-- ``` -->
+
+Ahora a efectos de homogeneidad convertiremos el segundo directorio de viajes que viene como ficheros mensuales en ficheros trimestrales. El proceso es el mismo. Se generan *data.frame* a partir del comando **read.csv**.
+Una vez generados esos marcos de datos se unen verticalmente por trimestres. Dandonos como resultado los ficheros trimestrales de este segundo directorio.
 
 
 # ANALIZAR
@@ -122,10 +151,13 @@ list_files2
 # COMPARTIR
 
 # ACTUAR
-```{r}
+
+```
 #setwd("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS")
 list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS') 
 df <- read_csv(list_files)
 str(df)
 unique(df$rideable_type )
 unique(df$member_casual)
+  
+```
