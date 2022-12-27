@@ -160,15 +160,15 @@ lapply(list_files_years,
 
 # Data frame from list of files
 
-list_files_final <- list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2/',full.names=TRUE)
+list_files_final <- list.files(path='/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA',full.names=TRUE)
 list_files_final
 
-starttime_type <- sapply(list_files_final,
-       function(x){
-         df <- read.csv(x)
-         colnames(df)
-          }
-       )
+starttime_type <- lapply(list_files_final,
+                         function(x){
+                           spec(read_csv(x))
+                           
+                         }
+)
 
 starttime_type
 df <- list.files(path = '~/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2/', pattern = '*.csv',full.names=TRUE) %>%
