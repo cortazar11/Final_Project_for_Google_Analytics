@@ -11,6 +11,7 @@ colnames(my_data1)
 my_data2 <- read.csv('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/202210-divvy-tripdata.csv')
 colnames(my_data2)
 
+as.POSIXct(my_data2$starttime, tz = "", format="%m/%d/%Y %H:%M")
 
 #list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS')
 #list_files
