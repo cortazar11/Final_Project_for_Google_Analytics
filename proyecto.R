@@ -1,15 +1,14 @@
-install.packages("tidyverse")
-
 library(tidyverse)
 library(readr)
 library(dplyr)
 library(ggplot2)
 library(data.table)
+library(lubridate)
 
-my_data1 <- read.csv('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2013.csv')
-colnames(my_data1)
-my_data2 <- read.csv('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/202210-divvy-tripdata.csv')
-colnames(my_data2)
+my_data1 <- read_csv('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2/Divvy_Trips_2013.csv')
+class(my_data1$starttime)
+my_data2 <- read_csv('CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2/Divvy_Trips_2014_A_Q1Q2.csv')
+my_data2$starttime[1]
 
 as.POSIXct(my_data2$starttime, tz = "", format="%m/%d/%Y %H:%M")
 
@@ -31,105 +30,40 @@ raw.data <- raw.file.paths %>%
 
 # CLEANING FILES
 
-# 2014_Q3
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/',list_files[3]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/',list_files[4]))
-datafile <- rbind(datafile1, datafile2)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/2014_Q3-divvy-tripdata.csv", row.names=FALSE)
+lapply(list_files_final[23:24],
+          function(x) {
+                my_data <-read_csv(x)
+                names(my_data)[names(my_data) == "start_time"] <- "starttime"
+                names(my_data)[names(my_data) == "end_time"] <- "stoptime"
+                write.csv(my_data,x,row.names=FALSE)
+          }
+       )
 
+lapply(list_files_final[22],
+        function(x) {
+          my_data <- read_csv(x)
+          names(my_data) <- c("trip_id","starttime", "stoptime", "bikeid", "tripduration", "from_station_id", "from_station_name",
+                              "to_station_id", "to_station_name", "usertype", "gender", "birthyear")
+          write.csv(my_data,x,row.names=FALSE)
+        }
+       )
 
+as.POSIXct(my_data2$starttime, tz = "", format="%m/%d/%Y %H:%M")
 
-# 2015_Q3
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/',list_files[7]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/',list_files[8]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/',list_files[9]))
-datafile <- rbind(datafile1, datafile2,datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/2015_Q3-divvy-tripdata.csv", row.names=FALSE)
+lapply(list_files_final[2:16],
+                 function(x){
+                   my_data <- read_csv(x)
+                   as.POSIXct(my_data$starttime, tz = "", format="%m/%d/%Y %H:%M")
+                   as.POSIXct(my_data$stoptime, tz = "", format="%m/%d/%Y %H:%M")
+                 })
 
-# 2016_Q2
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/',list_files[13]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/',list_files[14]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/',list_files[15]))
-datafile <- rbind(datafile1, datafile2,datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2016_Q2.csv", row.names=FALSE)
-
-
-
-
-# 2020_Q2
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[1]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[2]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[3]))
-
-datafile <- rbind(datafile1, datafile2, datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/Divvy_Trips_2020_Q2.csv", row.names=FALSE)
-
-# 2020_Q3
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[4]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[5]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[6]))
-
-datafile <- rbind(datafile1, datafile2, datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/Divvy_Trips_2020_Q3.csv", row.names=FALSE)
-
-# 2020_Q4
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[7]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[8]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[9]))
-
-datafile <- rbind(datafile1, datafile2, datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/Divvy_Trips_2020_Q4.csv", row.names=FALSE)
-
-# 2021_Q1
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[10]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[11]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[12]))
-
-datafile <- rbind(datafile1, datafile2, datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/Divvy_Trips_2021_Q1.csv", row.names=FALSE)
-# 2021_Q2
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[13]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[14]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[15]))
-
-datafile <- rbind(datafile1, datafile2, datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/Divvy_Trips_2021_Q2.csv", row.names=FALSE)
-# 2021_Q3
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[16]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[17]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[18]))
-
-datafile <- rbind(datafile1, datafile2, datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/Divvy_Trips_2021_Q3.csv", row.names=FALSE)
-# 2021_Q4
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[19]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[20]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[21]))
-
-datafile <- rbind(datafile1, datafile2, datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/Divvy_Trips_2021_Q4.csv", row.names=FALSE)
-
-# 2022_Q1
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[22]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[23]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[24]))
-
-datafile <- rbind(datafile1, datafile2, datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/Divvy_Trips_2022_Q1.csv", row.names=FALSE)
-# 2022_Q2
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[25]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[26]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[27]))
-
-datafile <- rbind(datafile1, datafile2, datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/Divvy_Trips_2022_Q2.csv", row.names=FALSE)
-# 2022_Q3
-datafile1 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[28]))
-datafile2 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[29]))
-datafile3 <- read.csv(paste0('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/',list_files[30]))
-
-datafile <- rbind(datafile1, datafile2, datafile3)
-write.csv(datafile,"/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/YEARS/Divvy_Trips_2022_Q3.csv", row.names=FALSE)
+result <- lapply(list_files_final,
+       function(x){
+         my_data <- read_csv(x)
+         class(my_data$starttime)
+         class(my_data$stoptime)
+       })
+result
 
 list_files_trips <-list.files(path='/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA/TRIPS/')
 list_files_trips
@@ -161,7 +95,7 @@ lapply(list_files_years,
 
 # Data frame from list of files
 
-list_files_final <- list.files(path='/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA',full.names=TRUE)
+list_files_final <- list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2',full.names = TRUE)
 list_files_final
 
 starttime_type <- lapply(list_files_final,
@@ -172,6 +106,7 @@ starttime_type <- lapply(list_files_final,
 )
 
 starttime_type
-df <- list.files(path = '~/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2/', pattern = '*.csv',full.names=TRUE) %>%
-  map_df(~read_csv(.))
-head(df)
+
+df <- list.files(path = "/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2", pattern = "*.csv") %>% 
+  map_df(~fread(.))
+df
