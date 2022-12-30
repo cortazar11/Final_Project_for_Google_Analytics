@@ -86,7 +86,7 @@ Para la union de ficheros mensuales en trimestrales y siguiente derivación en n
     datafile <- rbind(datafile1, datafile2, datafile3)
     write.csv(datafile,*path*)
 ```
-Para el cambio en el nombre en los campos de ficheros de ls segunda base de datos ( a partir primer trimestre 2020) y siguiente derivación en nuvos ficheros:
+Para el cambio en el nombre en los campos de ficheros de la segunda base de datos ( a partir primer trimestre 2020) y siguiente derivación en nuvos ficheros:
 
 ```
 lapply(list_files_years, 
@@ -102,6 +102,31 @@ lapply(list_files_years,
 )
 
 ```
+
+Al final me ha quedado un solo directorio con 37 ficheros:
+
+1. Un fichero con los datos del año 2013.
+2. Un fichero con los datos de los dos primeros trimestres de 2014 conjuntamente.
+3. 33 ficheros con datos trimestrales desde el tercer trimestre de 2014 hasta el tercer trimestre de 2022.
+4. 2 ficheros mas mensuales correspondientes a Octubre 2022 y Noviembre 2022
+
+
+El siguiente paso en la limpieza ha sido convertir algunos ficheros con los campos tiempo en que se coge la bici (starttime), tiempo en que se deja la bici (stoptime) tel tipo caracter al de fecha y hora (datetime).
+
+```{r}
+list_files_final <- list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2',full.names = TRUE)
+list_files_final
+
+variables <- lapply(list_files_final[1],
+                         function(x){
+                           spec(read_csv(x))
+                           
+                         }
+)
+
+variables
+```
+
 
 
 <!-- ### Concatenar ficheros para generar uno único del tercer trimestre de 2014 -->
@@ -147,6 +172,8 @@ Una vez generados esos marcos de datos se unen verticalmente por trimestres. Dan
 
 
 # ANALIZAR
+
+A partir del conjunto de ficheros final comienzo el análisis. 
 
 # COMPARTIR
 
