@@ -10,32 +10,42 @@ library(lubridate)
 library(generics)
 library(stringi)
 
-list_files <- list.files("/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA_LAST_12_MONTH", full.names= TRUE)
+list_files <- list.files("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS", full.names= TRUE)
 list_files
 
-my_data <- read_csv("/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA_LAST_12_MONTH//202112-divvy-tripdata.csv")
+my_data <- read_csv("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS/202112-divvy-tripdata.csv")
 glimpse(my_data)
 
 result <- lapply(list_files,
                  function(x){
-                    df <- read.csv(x)
-                    df$month <- x
-                    df$month <- stri_replace_all_regex(df$month,
-                              pattern=c('/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA_LAST_12_MONTH/', '-divvy-tripdata.csv'),
-                                                      replacement=c('', ''),
+                   df <- read.csv(x)
+                   df$month <- x
+                   df$month <- stri_replace_all_regex(df$month,
+                                                      pattern=c('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS/', '-divvy-tripdata.csv','-divvy-publictripdata.csv'),
+                                                      replacement=c('', '', '' ),
                                                       vectorize=FALSE)
-                    df
+                   df$diff <- df$ended_at - df$started_at
+                   df
                  }
-       )
+)
 class(result)
 
+# Single and final Data Frame
 df <- do.call(rbind,result)
 colnames(df)
+head(df)
 
+# Grouping by month
 df$member_casual <- as.factor(df$member_casual)
-df$member_casual
-value <- abs(rnorm(12 , 0 , 15))
-p <- ggplot(df, aes(fill=member_casual,y=value,x=month )) +
+by_month <- df %>%
+              group_by(month) %>%
+              count(member_casual)
+by_month
+
+
+
+
+p <- ggplot(by_month, aes(fill=member_casual,y=n,x=month )) +
   geom_bar(stat="identity")
 p
 # df <- list.files(path = "/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA_LAST_12_MONTH", pattern = "*.csv",full.names = TRUE) %>% 
@@ -43,7 +53,10 @@ p
 # glimpse(df)
 
 
-#########################################################################################################################################
+
+
+
+##############################################################################################################################3
 my_data1 <- read_csv('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2/Divvy_Trips_2013.csv')
 my_data1$usertype[my_data1$usertype=="Customer"] <- "casual"
 my_data1$usertype[my_data1$usertype=="Subscriber"] <- "member"
