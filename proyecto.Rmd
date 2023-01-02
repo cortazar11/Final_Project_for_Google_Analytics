@@ -51,10 +51,7 @@ Hay tres tipos de ficheros con dos diferente clases de datos:
 En el primero estan los datos correspondientes a los trayectos que se realizan en las bicicletas.
 En el segundo, los datos correspondientes a las estaciones donde estan colocadas las bicicletas.
 
-En relación con los trayectos, hay datos de un tipo que van desde el 2003 hasta noviembre del 2022. Sin embargo, las bases de datos de donde proceden no son las mismas. Desde el segundo cuatrimestre cambian.
-
-En cuanto a las estaciones los datos disponibles van desde 2013 a 2017.
-
+Para este ejercicio y tal y como se indica en las instrucciones se utilizaran los datos de los 12 últimos meses, por lo que tendremos ficheros correspondientes a los meses que van desde Diciembre 2021 a Noviembre 2022
 
 
 
@@ -62,118 +59,76 @@ En cuanto a las estaciones los datos disponibles van desde 2013 a 2017.
 
 # PROCESAR
 
-Para el proceso de datos he elegido R. En primer lugar queria hacer los cálculos previos con sql (BigQuery de Google) para poder utilizar las diferentes herramientas aprendidas en el curso de Google Analytics. Sin embargo hay un problema con el tamaño de los ficheros a procesar. A partir de un tamaño superior a 100 Mb BigQuery no los sube; hay que subirlos en Google Cloud Storage y aqui hay que subscribirse. Así que para este caso realizaré todo el proceso en R. Ademas, RStudio permite el trabajar con R de una manera ágil, desde el punto inicial, la importación de datos, hasta el final la emision del informe en pdf o html.
+## Limpieza ficheros de viajes 
 
-Lo primero es hacer homogeneos los ficheros, ya que hay algunos que se refieren a un trimestre, otros se refieren a meses, etc. Asi que los convertiremos todos a datos trimestrales.
-
-Asi mismo he subdividido todos los ficheros en tres directorios: en uno estan los viajes desde el 2013 hasta el primer trimestre de 2020, en otro los viajes desde el primer trimestre de 2020 hasta Noviembre 2022 y en un tercero datos relativos a las estaciones donde estan aparcadas las bicis, habiendo datos solo hasta 2017. Los dos primeros son relativos a los mismos datos, pero proceden de bases de datos diferentes por lo que los campos no coinciden.
-
-## Limpieza ficheros de viajes de 2013 a primer cuatrimestre 2014.
-
-Antes que nada tenemos que juntar todos los ficheros con las mismas características, con lo que tendriamos dos grupos:
-uno el mas importante con las estaciones de partida, estaciones de llegada, tiempo en que se ha cogido la bicicleta en estación de partida, tiempo en que se deja la bicicleta en estación de llegada y tipo de usario (casual o con suscripcion anual). Para ello a efectos de homogeneidad reduciremos todos los ficheros a ficheros trimestrales, uniendo tres ficheros cuando estos son mensuales.
-
-El principal problema con este primer grupo es que estos ficheros proceden de dos bases de datos diferente en que los campos no coinciden exactamente, por lo que tendré que cambiar los nombres de los ficheros de la segunda base de datos para que coincidan con los de la primera.
-
-Abajo indico el código que he utilizado pero sin posibilidad de evaluacion, ya que los resultados derivan en nuevos ficheros que seran los que utilizaré para comenza el análisis.
-
-Para la union de ficheros mensuales en trimestrales y siguiente derivación en nuevos ficheros:
-
-```
-    datafile1 <- read.csv(*path*)
-    datafile2 <- read.csv(*path*)
-    datafile3 <- read.csv(*path*)
-    datafile <- rbind(datafile1, datafile2, datafile3)
-    write.csv(datafile,*path*)
-```
-Para el cambio en el nombre en los campos de ficheros de la segunda base de datos ( a partir primer trimestre 2020) y siguiente derivación en nuvos ficheros:
-
-```
-lapply(list_files_years, 
-       function(x) {
-         df<- read.csv(*path*)
-         names(df) <- c("trip_id","rideable_type" ,"starttime","stoptime" ,
-                        "from_station_name","from_station_id" ,"to_station_name" ,
-                        "to_station_id","start_lat" ,"start_lng" ,"end_lat" ,"end_lng",
-                        "usertype" )  
-         
-         write.csv(df,*path*,row.names=FALSE)
-       }
-)
-
-```
-
-Al final me ha quedado un solo directorio con 37 ficheros:
-
-1. Un fichero con los datos del año 2013.
-2. Un fichero con los datos de los dos primeros trimestres de 2014 conjuntamente.
-3. 33 ficheros con datos trimestrales desde el tercer trimestre de 2014 hasta el tercer trimestre de 2022.
-4. 2 ficheros mas mensuales correspondientes a Octubre 2022 y Noviembre 2022
-
-
-El siguiente paso en la limpieza ha sido convertir algunos ficheros con los campos tiempo en que se coge la bici (starttime), tiempo en que se deja la bici (stoptime) tel tipo caracter al de fecha y hora (datetime).
+En primer lugar hacemos una lista de las rutas a los 12 ficheros que vamos a utilizar
 
 ```{r}
-list_files_final <- list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA2',full.names = TRUE)
-list_files_final
-
-variables <- lapply(list_files_final[1],
-                         function(x){
-                           spec(read_csv(x))
-                           
-                         }
-)
-
-variables
+  list_files <- list.files("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS", full.names= TRUE)
+  list_files
 ```
 
+Despues leemos con el comando read_csv todos los ficheros indicados en las rutas anteriores para crear un marco de datos de cada fichero y añadimos una columna mas en cada marco: la de mes, que se derivará del nombre de cada fichero donde esta escrito el mes a que corresponde el fichero (202112-divvy-tripdata.csv, etc)
 
+```{r}
+    result <- lapply(list_files,
+                 function(x){
+                   df <- read_csv(x)
+                   df$month <- x
+                   df$month <- stri_replace_all_regex(df$month,
+                                                      pattern=c('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS/',   
+                                                                '-divvy-tripdata.csv','-divvy-publictripdata.csv'),
+                                                      replacement=c('', '', '' ),
+                                                      vectorize=FALSE)
+                   df$diff <- df$ended_at - df$started_at
+                   df$diff_format <- ms(df$diff)
+                   df
+                 }
+)
+```
+El anterior proceso nos da una lista de marcos de datos correspondientes cada uno a los 12 meses que analizaremos.
 
-<!-- ### Concatenar ficheros para generar uno único del tercer trimestre de 2014 -->
+```{r}
+class(result)
+```
+Lo que tenemos que hacer ahora con esta lista de marcos de datos es convergerlos todos en un único marco de datos donde el mes, en vez de ser el nombre del fichero será uno de los campos de ese marco, para lo cual utilizaremos el comando *do.call* con el cual en vez de aplicar una funcion a los elementos de una lista, lo que hacemos es incorporar una lista como argumentos de una funcion; en este caso *rbind*.
 
-<!-- ```{r} -->
-<!-- datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[6])) -->
-<!-- datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[7])) -->
-<!-- datafile <- rbind(datafile1, datafile2) -->
-<!-- #write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2014_Q3.csv") -->
-<!-- ``` -->
+```{r}
+    df <- do.call(rbind,result)
+```
 
-<!-- ### Concatenar ficheros para generar un único del tercer trimestre de 2015 -->
+Una primera lectura al marco de datos resultante nos da los siguientes resultados.
 
-<!-- ```{r} -->
-<!-- datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[9])) -->
-<!-- datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[10])) -->
-<!-- datafile3 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[11])) -->
+```{r}
+    colnames(df)
+    head(df)
+```
 
-<!-- datafile <- rbind(datafile1, datafile2, datafile3) -->
-<!-- #write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2015_Q3.csv") -->
-<!-- ``` -->
-
-<!-- ### Concatenar ficheros para generar un único del segundo trimestre de 2016 -->
-
-<!-- ```{r} -->
-<!-- datafile1 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[14])) -->
-<!-- datafile2 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[15])) -->
-<!-- datafile3 <- read.csv(paste0('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/',list_files[16])) -->
-
-<!-- datafile <- rbind(datafile1, datafile2, datafile3) -->
-<!-- #write.csv(datafile,"CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS/Divvy_Trips_2016_Q2.csv") -->
-<!-- ``` -->
-
-<!-- Una vez generados los nuevos cuatrimestres, nos deshacemos de los originales que no eran homogeneos con el resto de los datos. La lista definitiva de los ficheros en este directorio sería: -->
-
-<!-- ```{r} -->
-<!-- list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/TRIPS') -->
-<!-- list_files -->
-<!-- ``` -->
-
-Ahora a efectos de homogeneidad convertiremos el segundo directorio de viajes que viene como ficheros mensuales en ficheros trimestrales. El proceso es el mismo. Se generan *data.frame* a partir del comando **read.csv**.
-Una vez generados esos marcos de datos se unen verticalmente por trimestres. Dandonos como resultado los ficheros trimestrales de este segundo directorio.
-
+Con lo que pasamos al siguiente apartado que será análisis y gráficos.
 
 # ANALIZAR
 
-A partir del conjunto de ficheros final comienzo el análisis. 
+1. Hacemos un gráfico para tener una visión general de cuantos eran ciclistas ocasionales y cuantos tenían una suscripción anual.
+Para ello primeramente tenemos que agrupar por meses los datos. Para ello primero convertimos el campo *member_casual* de character en factor y seguidamente agrupamos los datos por meses.
+
+```{r}
+    df$member_casual <- as.factor(df$member_casual)
+    by_month <- df %>%
+              group_by(month) %>%
+              count(member_casual)
+    by_month
+```
+
+Seguidamente hacemos un gráfico de barras que nos en las barras el ńumero de cilistas ocasionales y suscriptores, agrupados por mes.
+
+```{r}
+    p <- ggplot(by_month, aes(fill=member_casual,y=n,x=month )) +
+          geom_bar(stat="identity")
+    p
+```
+De aqui podemos sacar ya algunas conclusiones:
+1. Entre Mayo y Septiembre vemos como aumenta el número de personas que utilizan la bici, coincidiendo con la mejora del tiempo.
+Por otro lado vemos como el aumento es tanto de ciclistas ocasionales como de suscriptores en los meses de verano, a diferencia del resto del año donde los suscriptores son inmensa mayoria de los que utilizan la bici.
 
 # COMPARTIR
 
