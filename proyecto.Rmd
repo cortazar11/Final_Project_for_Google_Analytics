@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(readr)
+library(descriptr)
 ```
 
 Este trabajo está realizado para el proyecto final de la certificación profesional de Google Analytics en la plataforma Coursera, pudiendo elegirse dos casos prácticos. De los dos proyectos a elegir he optado por el caso práctico 1: ¿Cómo lograr el éxito rápido de un negocio de bicicletas compartidas?
@@ -81,7 +82,8 @@ Despues leemos con el comando read_csv todos los ficheros indicados en las rutas
                                                       replacement=c('', '', '' ),
                                                       vectorize=FALSE)
                    df$diff <- df$ended_at - df$started_at
-                   df$diff_format <- ms(df$diff)
+                   df$diff_double <- as.double(df$diff, units="auto")
+                   df$diff_format <- hms::hms(seconds_to_period(df$diff))
                    df
                  }
 )
@@ -97,6 +99,7 @@ Lo que tenemos que hacer ahora con esta lista de marcos de datos es convergerlos
     df <- do.call(rbind,result)
 ```
 
+
 Una primera lectura al marco de datos resultante nos da los siguientes resultados.
 
 ```{r}
@@ -104,31 +107,70 @@ Una primera lectura al marco de datos resultante nos da los siguientes resultado
     head(df)
 ```
 
+En este paso de limpieza podemos comprobar como en la diferenci del tiempo de recogida de la bicicleta y el tiempo de dejarla hay valores negatios y valores que son cero.
+
+
 Con lo que pasamos al siguiente apartado que será análisis y gráficos.
 
 # ANALIZAR
 
-1. Hacemos un gráfico para tener una visión general de cuantos eran ciclistas ocasionales y cuantos tenían una suscripción anual.
-Para ello primeramente tenemos que agrupar por meses los datos. Para ello primero convertimos el campo *member_casual* de character en factor y seguidamente agrupamos los datos por meses.
+1. En una primera introducción al análisis tenemos los sigueintes resultado:
 
 ```{r}
-    df$member_casual <- as.factor(df$member_casual)
-    by_month <- df %>%
-              group_by(month) %>%
-              count(member_casual)
-    by_month
+    glimpse(df)
+    ds_screener(df)
 ```
+Lo que nos da 5.733.451 registros y 16 variables
+
+Asi mismo una primera estadística nos da:
+
+```{r}
+    summary(df)
+```
+
+
+
+2. Hacemos un gráfico para tener una visión general de cuantos eran ciclistas ocasionales y cuantos tenían una suscripción anual.
+Para ello primeramente tenemos que agrupar por meses los datos. Para ello primero convertimos el campo *member_casual* de character en factor y seguidamente agrupamos los datos por meses.
+
+# ```{r}
+#     df$member_casual <- as.factor(df$member_casual)
+#     by_month <- df %>%
+#               group_by(month) %>%
+#               count(member_casual)
+#     by_month
+# ```
 
 Seguidamente hacemos un gráfico de barras que nos en las barras el ńumero de cilistas ocasionales y suscriptores, agrupados por mes.
 
 ```{r}
     p <- ggplot(by_month, aes(fill=member_casual,y=n,x=month )) +
-          geom_bar(stat="identity")
+          geom_bar(position="dodge", stat="identity")
     p
 ```
 De aqui podemos sacar ya algunas conclusiones:
-1. Entre Mayo y Septiembre vemos como aumenta el número de personas que utilizan la bici, coincidiendo con la mejora del tiempo.
+Entre Mayo y Septiembre vemos como aumenta el número de personas que utilizan la bici, coincidiendo con la mejora del tiempo.
 Por otro lado vemos como el aumento es tanto de ciclistas ocasionales como de suscriptores en los meses de verano, a diferencia del resto del año donde los suscriptores son inmensa mayoria de los que utilizan la bici.
+
+Ahora veremos el tipo de bicicleta que se usa desglosadas por mes:
+
+Primero convertimos en factor la variable tipo de bicicleta
+
+```{r}
+df$rideable_type <- as.factor(df$rideable_type)
+by_month_rideable_type <- df %>%
+              group_by(month) %>%
+              count(rideable_type)
+by_month_rideable_type
+```
+Y ahora hacemos el gráfico, igual que antes pero con esta otra variable: tipo de bicicleta:
+
+```{r}
+    q <- ggplot(by_month_rideable_type, aes(fill=rideable_type,y=n,x=month )) +
+          geom_bar(position="dodge",stat="identity")
+    q
+```
+Comprobamos que las bicicletas acopladas son las que menos se usan. En cuanto a las otras dos, vemos que las bicicletas clásicas se usan mas cuando el tiempo mejora: a partir de Mayo y hasta Julio se usan mas que las eléctricas. El resto de los meses son las eléctricas las mas usadas.
 
 # COMPARTIR
 
