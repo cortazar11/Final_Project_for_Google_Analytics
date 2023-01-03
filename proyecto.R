@@ -1,6 +1,7 @@
 install.packages("tidyverse")
 install.packages("generics")
 install.packages("stringi")
+install.packages("descriptr")
 library(tidyverse)
 library(readr)
 library(dplyr)
@@ -9,6 +10,7 @@ library(data.table)
 library(lubridate)
 library(generics)
 library(stringi)
+library(descriptr)
 
 list_files <- list.files("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS", full.names= TRUE)
 list_files
@@ -18,7 +20,7 @@ glimpse(my_data)
 
 result <- lapply(list_files,
                  function(x){
-                   df <- read.csv(x)
+                   df <- read_csv(x)
                    df$month <- x
                    df$month <- stri_replace_all_regex(df$month,
                                                       pattern=c('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS/', '-divvy-tripdata.csv','-divvy-publictripdata.csv'),
@@ -32,22 +34,48 @@ class(result)
 
 # Single and final Data Frame
 df <- do.call(rbind,result)
-colnames(df)
-head(df)
 
+
+# Converting drtn to time
+df$diff_format <- hms::hms(seconds_to_period(df$diff))
+
+colnames(df)
+glimpse(df)
+diff_double <-as.double(df$diff)
+range(diff_double, na.rm = FALSE)
+sum(sign(diff_double)==0)
+
+mean(df)
+diff_num[1:10]
+stats_time <- summary(diff_double)
+stats_time
 # Grouping by month
 df$member_casual <- as.factor(df$member_casual)
-by_month <- df %>%
+by_month_member <- df %>%
               group_by(month) %>%
               count(member_casual)
-by_month
-
-
-
+by_month_member
 
 p <- ggplot(by_month, aes(fill=member_casual,y=n,x=month )) +
-  geom_bar(stat="identity")
+  geom_bar(position="dodge",stat="identity")
 p
+
+# Grouping by month the times use
+mean_time <- 
+by_month_time <- df %>%
+                      group_by(month) %>%
+                      count(diff_format)
+by_month_time
+
+p <- ggplot(by_month_time, aes(fill=member_casual,y=n,x=month )) +
+  geom_bar(position="dodge",stat="identity")
+p
+
+
+
+# Data about rideable_type
+unique(df$rideable_type)
+
 # df <- list.files(path = "/home/miguel/CURSO_ANALISIS_DATOS/Caso_Práctico/DATA_LAST_12_MONTH", pattern = "*.csv",full.names = TRUE) %>% 
 #   map_df(~fread(.))
 # glimpse(df)
