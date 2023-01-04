@@ -13,7 +13,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(readr)
+library(dplyr)
+library(ggplot2)
+library(data.table)
+library(lubridate)
+library(generics)
+library(stringi)
 library(descriptr)
+library(psych)
+library(swirl)
 ```
 
 Este trabajo está realizado para el proyecto final de la certificación profesional de Google Analytics en la plataforma Coursera, pudiendo elegirse dos casos prácticos. De los dos proyectos a elegir he optado por el caso práctico 1: ¿Cómo lograr el éxito rápido de un negocio de bicicletas compartidas?
@@ -107,26 +115,33 @@ Una primera lectura al marco de datos resultante nos da los siguientes resultado
     head(df)
 ```
 
-En este paso de limpieza podemos comprobar como en la diferenci del tiempo de recogida de la bicicleta y el tiempo de dejarla hay valores negatios y valores que son cero.
+En este paso de limpieza podemos comprobar como en la diferencia del tiempo de recogida de la bicicleta y el tiempo de dejarla hay valores negatios y valores que son cero, por lo que tendremos que eliminar los registros correspondientes a estos valores.
+
+```{r}
+    df <- subset(df, !sign(df$diff_double)==-1)
+    df <- subset(df, !sign(df$diff_double)==0)
+```
+
 
 
 Con lo que pasamos al siguiente apartado que será análisis y gráficos.
 
 # ANALIZAR
 
-1. En una primera introducción al análisis tenemos los sigueintes resultado:
+1. Comenzamos a convertir algunas variables, como *rideable type* and *member_casual*
+
+```{r}
+    df$member_casual <- as.factor(df$member_casual)
+    df$rideable_type <- as.factor(df$rideable_type)
+```
+
+2. En una primera introducción al análisis tenemos los sigueintes resultado:
 
 ```{r}
     glimpse(df)
     ds_screener(df)
 ```
 Lo que nos da 5.733.451 registros y 16 variables
-
-Asi mismo una primera estadística nos da:
-
-```{r}
-    summary(df)
-```
 
 
 
@@ -172,16 +187,9 @@ Y ahora hacemos el gráfico, igual que antes pero con esta otra variable: tipo d
 ```
 Comprobamos que las bicicletas acopladas son las que menos se usan. En cuanto a las otras dos, vemos que las bicicletas clásicas se usan mas cuando el tiempo mejora: a partir de Mayo y hasta Julio se usan mas que las eléctricas. El resto de los meses son las eléctricas las mas usadas.
 
-# COMPARTIR
+Aqui tenemos las primera estadística descriptiva agrupadas por meses, utilizando el paquete *psych*
 
-# ACTUAR
-
-```
-#setwd("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS")
-list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS') 
-df <- read_csv(list_files)
-str(df)
-unique(df$rideable_type )
-unique(df$member_casual)
-  
+```{r}
+    stats_by_month <- describeBy(df$diff_double, df$month, mat = TRUE) 
+    stats_by_month
 ```
