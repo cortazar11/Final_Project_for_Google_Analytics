@@ -122,20 +122,20 @@ En este paso de limpieza podemos comprobar como en la diferencia del tiempo de r
     df <- subset(df, !sign(df$diff_double)==0)
 ```
 
-
-
-Con lo que pasamos al siguiente apartado que será análisis y gráficos.
-
-# ANALIZAR
-
-1. Comenzamos a convertir algunas variables, como *rideable type* and *member_casual*
+1. Convertimos algunas variables como *rideable type* and *member_casual* de carácter a factor.
 
 ```{r}
     df$member_casual <- as.factor(df$member_casual)
     df$rideable_type <- as.factor(df$rideable_type)
 ```
 
-2. En una primera introducción al análisis tenemos los sigueintes resultado:
+
+Con lo que pasamos al siguiente apartado que será análisis y gráficos.
+
+# ANALIZAR
+
+
+2. En una primera introducción al análisis tenemos los siguientes resultado:
 
 ```{r}
     glimpse(df)
@@ -148,13 +148,12 @@ Lo que nos da 5.733.451 registros y 16 variables
 2. Hacemos un gráfico para tener una visión general de cuantos eran ciclistas ocasionales y cuantos tenían una suscripción anual.
 Para ello primeramente tenemos que agrupar por meses los datos. Para ello primero convertimos el campo *member_casual* de character en factor y seguidamente agrupamos los datos por meses.
 
-# ```{r}
-#     df$member_casual <- as.factor(df$member_casual)
-#     by_month <- df %>%
-#               group_by(month) %>%
-#               count(member_casual)
-#     by_month
-# ```
+```{r}
+     by_month <- df %>%
+               group_by(month) %>%
+               count(member_casual)
+    by_month
+```
 
 Seguidamente hacemos un gráfico de barras que nos en las barras el ńumero de cilistas ocasionales y suscriptores, agrupados por mes.
 
@@ -172,7 +171,7 @@ Ahora veremos el tipo de bicicleta que se usa desglosadas por mes:
 Primero convertimos en factor la variable tipo de bicicleta
 
 ```{r}
-df$rideable_type <- as.factor(df$rideable_type)
+
 by_month_rideable_type <- df %>%
               group_by(month) %>%
               count(rideable_type)
@@ -192,4 +191,57 @@ Aqui tenemos las primera estadística descriptiva agrupadas por meses, utilizand
 ```{r}
     stats_by_month <- describeBy(df$diff_double, df$month, mat = TRUE) 
     stats_by_month
+```
+
+<!-- Means of time diference grouped by month and by member_casual -->
+
+```{r}
+    stats_by_month_by_membercasual <- describeBy(df$diff_double, list(df$month, df$member_casual), mat = TRUE)
+    stats_by_month_by_membercasual
+```
+
+Grafico correspondiente
+
+```{r}
+    q <-  ggplot(stats_by_month_by_membercasual,aes(x = group1,
+                y = mean,
+                group = group2)) +
+          geom_line(aes(col = group2)) +
+          geom_point()
+    q
+```
+Aqui vemos claramente como la media del tiempo recorrido en bicicleta por los ciclistas ocasionales es mucho mayor que en los ciclistas que tienen una suscripcion, en todas las meses del año. Ahora haría falta saber si hay una relación significativa entre el tiempo de uso de la bicicleta y el ser ciclista ocasional o tener una suscripcion. O sea, tendremos que ver si el tiempo de uso de la bicicleta puede predecir si el ciclista es ocasional o suscriptor.
+
+```{r}
+    #x <- df$diff_double  #Continuous variable
+    #y <- df$member_casual  # Qualitative variable
+    
+    # Logistic Regression
+    fit <- glm(member_casual~diff_double,data=df,family=binomial)
+    summary(fit)
+```
+
+1. Una unidad de incremento en la variable tiempo de uso (diff_double) esta asociada con un cambio medio de -4.152e-04 en el registro de probabilidades.
+<!-- 95% CI for the coefficients -->
+
+
+<!-- Predicted values -->
+```{r}
+    predict(fit, type="response") 
+```
+
+
+
+# COMPARTIR
+
+# ACTUAR
+
+```
+#setwd("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS")
+list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS') 
+df <- read_csv(list_files)
+str(df)
+unique(df$rideable_type )
+unique(df$member_casual)
+  
 ```
