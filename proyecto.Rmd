@@ -212,36 +212,20 @@ Grafico correspondiente
 ```
 Aqui vemos claramente como la media del tiempo recorrido en bicicleta por los ciclistas ocasionales es mucho mayor que en los ciclistas que tienen una suscripcion, en todas las meses del año. Ahora haría falta saber si hay una relación significativa entre el tiempo de uso de la bicicleta y el ser ciclista ocasional o tener una suscripcion. O sea, tendremos que ver si el tiempo de uso de la bicicleta puede predecir si el ciclista es ocasional o suscriptor.
 
+## Test estadístico ANOVA para modelar la variable tiempo de uso de la bicicleta en funcion del tipo de usuario (ocasional, suscriptor).
+
 ```{r}
-    #x <- df$diff_double  #Continuous variable
-    #y <- df$member_casual  # Qualitative variable
-    
-    # Logistic Regression
-    fit <- glm(member_casual~diff_double,data=df,family=binomial)
-    summary(fit)
+   # Test estadístico ANOVA
+    result <- aov(diff_double ~ member_casual, data = df)
+    summary(result)
 ```
+El valor F, que es muy alto, nos viene a indicar que es probable que la variación de la variable tiempo de uso de la bicicleta causada por la variable tipo de usuario sea real y no debida al azar.
 
-1. Una unidad de incremento en la variable tiempo de uso (diff_double) esta asociada con un cambio medio de -4.152e-04 en el registro de probabilidades.
-<!-- 95% CI for the coefficients -->
-
-
-<!-- Predicted values -->
-```{r}
-    predict(fit, type="response") 
-```
-
-
+Lo cual queda confirmado por el valor de p, que es extremadamente pequeño (p=0.0000000000000002). Este valor describe la probabilidad de hallar un determinado conjunto de observaciones si la hipótesis nula fuera cierta, o sea, que no hubiera ninguna relación entre las variables.
+Cuanto mas pequeño es el valor p , mas probable es el rechazar la hipótesis nula y aceptar la alternativa, esto es, que hay relación entre las dos variables. Como el valor p es extremadamente pequeño, podemos concluir que el tiempo de uso de la bicicleta (la diferencia entre el momento en que se coge la bicicleta y el momento en que se deja) viene causada por el tipo de usuario.
+Sin embargo tenemos que tener en cuenta que la varianza residual es muy alta; esto es, hay mucha parte de la variación en el tiempo de uso de la bicicleta que no es explicada por la variable tipo de usuario.
 
 # COMPARTIR
 
 # ACTUAR
 
-```
-#setwd("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS")
-list_files <-list.files(path='/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA/YEARS') 
-df <- read_csv(list_files)
-str(df)
-unique(df$rideable_type )
-unique(df$member_casual)
-  
-```
