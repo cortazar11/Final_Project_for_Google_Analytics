@@ -56,38 +56,29 @@ diff_num[1:10]
 # Subsetting the data frame.
 df <- subset(df, !sign(df$diff_double)==-1)
 df <- subset(df, !sign(df$diff_double)==0)
-result
-# Grouping by month and member_casual
+
 df$member_casual <- as.factor(df$member_casual)
-by_month_member <- df %>%
-              group_by(month) %>%
-              count(member_casual)
-by_month_member
+df$rideable_type <- as.factor(df$rideable_type)
 
-p <- ggplot(by_month, aes(fill=member_casual,y=n,x=month )) +
-  geom_bar(position="dodge",stat="identity")
-p
-
-# Grouping by month the time is used
-typeof(df$diff_double)
-class(df$diff_double)
-e
-typeof(df$diff)
-sapply(df$diff_double, mean, na.rm=TRUE)
-
-df <- subset(df, !sign(df$diff_double)==-1)
-df <- subset(df, !sign(df$diff_double)==0)
-count(df)
-by_month <- df %>%
-              group_by(month) %>%
-              #summarise_at(vars(diff_double), list(name = mean))
-                      
-by_month
-
-summary(df$diff_double)
-result <- sapply(df$diff_double, mean, na.rm=TRUE)
+# Statistics by month
 stats_by_month <- describeBy(df$diff_double, df$month, mat = TRUE) 
 stats_by_month
-p <- ggplot(by_month_time, aes(fill=member_casual,y=n,x=month )) +
-  geom_bar(position="dodge",stat="identity")
-p
+
+
+# The median grouping by month and member_casual
+stats_by_month_by_membercasual <- describeBy(df$diff_double, list(df$month, df$member_casual), mat = TRUE)
+stats_by_month_by_membercasual
+p <- ggplot(stats_by_month, aes(y=mean,x=group1 )) +
+  geom_point()
+p 
+
+q <- ggplot(stats_by_month_by_membercasual,aes(x = group1,
+                y = mean,
+                group = group2)) +
+  geom_line(aes(col = group2)) +
+  geom_point()
+q
+
+# Relation between member_casual and diff_double
+
+summary(glm(member_casual~diff_double,data=df,family=binomial))
