@@ -19,8 +19,7 @@ library(swirl)
 list_files <- list.files("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS", full.names= TRUE)
 list_files
 
-my_data <- read_csv("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS/202112-divvy-tripdata.csv")
-glimpse(my_data)
+
 
 result <- lapply(list_files,
                  function(x){
@@ -73,12 +72,10 @@ p <- ggplot(stats_by_month, aes(y=mean,x=group1 )) +
 p 
 
 q <- ggplot(stats_by_month_by_membercasual,aes(x = group1,
-                y = mean,
-                group = group2)) +
+                                               y = mean,
+                                               group = group2)) +
   geom_line(aes(col = group2)) +
   geom_point()
 q
 
 # Relation between member_casual and diff_double
-
-summary(glm(member_casual~diff_double,data=df,family=binomial))
