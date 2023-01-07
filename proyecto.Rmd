@@ -1,7 +1,11 @@
 ---
-title: "PROYECTO"
-output: html_document
+title: \textcolor{blue}{"CASO PRACTICO GOOGLE ANALYTICS"}
+subtitle: "¿Cómo lograr el éxito rápido de un negocio de bicicletas compartidas?"
+output: pdf_document
 date: '2022-12-13'
+header-includes:
+    - \usepackage{sectsty}
+    - \allsectionsfont{\color{violet}}
 ---
 
 ```{r setup, include=FALSE}
@@ -9,8 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+Utilizamos R y aplicamos las siguiente librerías:
 
-```{r}
+```{r, results='hide',warning=FALSE,message=FALSE}
 library(tidyverse)
 library(readr)
 library(dplyr)
@@ -21,10 +26,9 @@ library(generics)
 library(stringi)
 library(descriptr)
 library(psych)
-library(swirl)
 ```
 
-Este trabajo está realizado para el proyecto final de la certificación profesional de Google Analytics en la plataforma Coursera, pudiendo elegirse dos casos prácticos. De los dos proyectos a elegir he optado por el caso práctico 1: ¿Cómo lograr el éxito rápido de un negocio de bicicletas compartidas?
+Este trabajo está realizado para el proyecto final de la certificación profesional de Google Analytics en la plataforma Coursera, pudiendo elegirse dos casos prácticos. De los dos proyectos a elegir he optado por el caso práctico 1: **¿Cómo lograr el éxito rápido de un negocio de bicicletas compartidas?**
 
 He seguido los pasos recomendados en el curso y que son: preguntar, preparar, procesar, analizar, compartir, actuar.
 
@@ -47,11 +51,11 @@ En resumen, las tres preguntas en concreto que guiarán el programa de marketing
 3. ¿Cómo puede usar Cyclistic los medios digitales para influenciar a los ciclistas ocasionales a convertirse en miembros?
 
 De estas tres preguntas, la directora de marketing me asigna, como analista de datos, la primera pregunta:
-¿En qué se diferencian los socios anuales y los ciclistas ocasionales con respecto al uso de las bicicletas de Cyclistic?
+**¿En qué se diferencian los socios anuales y los ciclistas ocasionales con respecto al uso de las bicicletas de Cyclistic?**
 
 # PREPARAR
 
-Para realizar el análisis los datos históricos de los viajes de Cyclistic.
+Para realizar el análisis tenemos los datos históricos de los viajes de Cyclistic.
 
 La fuente de datos es un enlace a la nube de amazon aws en donde se sencuentran múltiples ficheros en formato csv de la empresa ficticia Cyclistic. Por tanto se trata de una fuente secundaria.
 
@@ -60,7 +64,7 @@ Hay tres tipos de ficheros con dos diferente clases de datos:
 En el primero estan los datos correspondientes a los trayectos que se realizan en las bicicletas.
 En el segundo, los datos correspondientes a las estaciones donde estan colocadas las bicicletas.
 
-Para este ejercicio y tal y como se indica en las instrucciones se utilizaran los datos de los 12 últimos meses, por lo que tendremos ficheros correspondientes a los meses que van desde Diciembre 2021 a Noviembre 2022
+Para este ejercicio y tal y como se indica en las instrucciones se utilizaran los datos de los 12 últimos meses, por lo que tendremos ficheros correspondientes a los meses que van desde Diciembre 2021 a Noviembre 2022.
 
 
 
@@ -73,26 +77,27 @@ Para este ejercicio y tal y como se indica en las instrucciones se utilizaran lo
 En primer lugar hacemos una lista de las rutas a los 12 ficheros que vamos a utilizar
 
 ```{r}
-  list_files <- list.files("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS", full.names= TRUE)
+  list_files <- list.files("/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS", 
+                            full.names= TRUE)
   list_files
 ```
 
-Despues leemos con el comando read_csv todos los ficheros indicados en las rutas anteriores para crear un marco de datos de cada fichero y añadimos una columna mas en cada marco: la de mes, que se derivará del nombre de cada fichero donde esta escrito el mes a que corresponde el fichero (202112-divvy-tripdata.csv, etc)
+Despues aplicamos la función **lapply** y leemos con el comando **read_csv** todos los ficheros indicados en las rutas anteriores para crear un marco de datos de cada fichero, añadiendo una variable **mes** a partir del nombre de cada fichero.Asi mismo creamos otra variable a partir de la diferencia entre el momento de partida y el momento de llegada en cada recorrido. El resultado será una lista de marcos de datos.
 
-```{r}
-    result <- lapply(list_files,
-                 function(x){
-                   df <- read_csv(x)
-                   df$month <- x
-                   df$month <- stri_replace_all_regex(df$month,
-                                                      pattern=c('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS/',   
-                                                                '-divvy-tripdata.csv','-divvy-publictripdata.csv'),
-                                                      replacement=c('', '', '' ),
-                                                      vectorize=FALSE)
-                   df$diff <- df$ended_at - df$started_at
-                   df$diff_double <- as.double(df$diff, units="auto")
-                   df$diff_format <- hms::hms(seconds_to_period(df$diff))
-                   df
+```{r, results='hide', warning=FALSE, message=FALSE}
+      result <- lapply(list_files,
+          function(x){
+              df <- read_csv(x)
+              df$month <- x
+              df$month <- stri_replace_all_regex(df$month,
+                            pattern=c('/home/miguel/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS/',   
+                                      '-divvy-tripdata.csv','-divvy-publictripdata.csv'),
+                            replacement=c('', '', '' ),
+                            vectorize=FALSE)
+              df$diff <- df$ended_at - df$started_at
+              df$diff_double <- as.double(df$diff, units="auto")
+              df$diff_format <- hms::hms(seconds_to_period(df$diff))
+              df
                  }
 )
 ```
@@ -101,30 +106,24 @@ El anterior proceso nos da una lista de marcos de datos correspondientes cada un
 ```{r}
 class(result)
 ```
-Lo que tenemos que hacer ahora con esta lista de marcos de datos es convergerlos todos en un único marco de datos donde el mes, en vez de ser el nombre del fichero será uno de los campos de ese marco, para lo cual utilizaremos el comando *do.call* con el cual en vez de aplicar una funcion a los elementos de una lista, lo que hacemos es incorporar una lista como argumentos de una funcion; en este caso *rbind*.
+Lo que tenemos que hacer ahora con esta lista de marcos de datos es convergerlos todos en un único marco de datos, para lo cual utilizaremos el comando *do.call* con el cual en vez de aplicar una funcion a los elementos de una lista, lo que hacemos es incorporar una lista como argumentos de una funcion; en este caso **rbind**.
 
 ```{r}
     df <- do.call(rbind,result)
 ```
 
 
-Una primera lectura al marco de datos resultante nos da los siguientes resultados.
+Las variables finales del marco de datos único serán: 
 
 ```{r}
     colnames(df)
-    head(df)
 ```
 
-En este paso de limpieza podemos comprobar como en la diferencia del tiempo de recogida de la bicicleta y el tiempo de dejarla hay valores negatios y valores que son cero, por lo que tendremos que eliminar los registros correspondientes a estos valores.
+En este paso de limpieza podemos comprobar como en la diferencia del tiempo de recogida de la bicicleta y el tiempo de dejarla hay valores negatios y valores que son cero, por lo que tendremos que eliminar los registros correspondientes a estos valores. Por otro lado convertiremos las variables tipo de usuario y tipo de bicicleta de carácter a factor.
 
 ```{r}
     df <- subset(df, !sign(df$diff_double)==-1)
     df <- subset(df, !sign(df$diff_double)==0)
-```
-
-1. Convertimos algunas variables como *rideable type* and *member_casual* de carácter a factor.
-
-```{r}
     df$member_casual <- as.factor(df$member_casual)
     df$rideable_type <- as.factor(df$rideable_type)
 ```
@@ -132,100 +131,302 @@ En este paso de limpieza podemos comprobar como en la diferencia del tiempo de r
 
 Con lo que pasamos al siguiente apartado que será análisis y gráficos.
 
-# ANALIZAR
+# ANALIZAR Y COMPARTIR
 
 
-2. En una primera introducción al análisis tenemos los siguientes resultado:
+Seguidamente, indicamos una primera presentación del número de registros y número y característica de variables.
 
 ```{r}
+    # Vistazo de los datos
     glimpse(df)
     ds_screener(df)
 ```
-Lo que nos da 5.733.451 registros y 16 variables
+Lo que nos da 5.733.451 registros y 17 variables
 
+### Gráfico de barras con número de ciclistas ocasionales y suscriptores anuales agrupados por mes.
 
-
-2. Hacemos un gráfico para tener una visión general de cuantos eran ciclistas ocasionales y cuantos tenían una suscripción anual.
+Hacemos un gráfico para tener una visión general de cuantos eran ciclistas ocasionales y cuantos tenían una suscripción anual.
 Para ello primeramente tenemos que agrupar por meses los datos. Para ello primero convertimos el campo *member_casual* de character en factor y seguidamente agrupamos los datos por meses.
 
-```{r}
-     by_month <- df %>%
+```{r, results='hide'}
+    by_month <- df %>%
                group_by(month) %>%
                count(member_casual)
     by_month
 ```
 
-Seguidamente hacemos un gráfico de barras que nos en las barras el ńumero de cilistas ocasionales y suscriptores, agrupados por mes.
 
 ```{r}
+    # Gráfico barras tipo usuario.
+    my_labels <- c(casual="Ocasional" , member="Suscriptor")
     p <- ggplot(by_month, aes(fill=member_casual,y=n,x=month )) +
-          geom_bar(position="dodge", stat="identity")
+          geom_bar(position="dodge", stat="identity") +
+          scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+          theme(axis.text.x =element_text(angle=45),
+                plot.title=element_text(size=14,hjust=0.5))+
+          labs(x="Mes",y="Número de Usuarios",title="Tipo de Usuario por meses del año",
+               fill="Tipo de Usuario\n") +
+          scale_fill_brewer(labels=my_labels,palette="Set1")
     p
 ```
 De aqui podemos sacar ya algunas conclusiones:
 Entre Mayo y Septiembre vemos como aumenta el número de personas que utilizan la bici, coincidiendo con la mejora del tiempo.
 Por otro lado vemos como el aumento es tanto de ciclistas ocasionales como de suscriptores en los meses de verano, a diferencia del resto del año donde los suscriptores son inmensa mayoria de los que utilizan la bici.
 
-Ahora veremos el tipo de bicicleta que se usa desglosadas por mes:
+### Gráfico de barras con tipo de bicicleta agrupados por mes.
 
-Primero convertimos en factor la variable tipo de bicicleta
+Ahora hacemos otro gráfico, igual que antes, pero con esta otra variable: tipo de bicicleta:
 
-```{r}
-
-by_month_rideable_type <- df %>%
+```{r, results='hide'}
+    by_month_rideable_type <- df %>%
               group_by(month) %>%
               count(rideable_type)
-by_month_rideable_type
+    by_month_rideable_type
 ```
-Y ahora hacemos el gráfico, igual que antes pero con esta otra variable: tipo de bicicleta:
+
+
 
 ```{r}
+    # Gráfico barras tipo de bicicleta.
+    my_labels <- c(classic_bike="Bici Clásica" , docked_bike="Bici Acoplada" ,
+                   electric_bike="Bici Eléctrica")
     q <- ggplot(by_month_rideable_type, aes(fill=rideable_type,y=n,x=month )) +
-          geom_bar(position="dodge",stat="identity")
+          geom_bar(position="dodge",stat="identity") +
+           scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+          theme(axis.text.x =element_text(angle=45),plot.title=element_text(size=14,hjust=0.5))+
+          labs(x="Mes",y="Número de Usuarios",title="Tipo de Bicicleta por meses del año",
+               fill="Tipo de Bicicleta\n") +
+          scale_fill_brewer(labels=my_labels,palette="Set1")
     q
 ```
 Comprobamos que las bicicletas acopladas son las que menos se usan. En cuanto a las otras dos, vemos que las bicicletas clásicas se usan mas cuando el tiempo mejora: a partir de Mayo y hasta Julio se usan mas que las eléctricas. El resto de los meses son las eléctricas las mas usadas.
 
+### Estadística descriptiva
+
 Aqui tenemos las primera estadística descriptiva agrupadas por meses, utilizando el paquete *psych*
 
 ```{r}
+    # Estadística descriptiva.
     stats_by_month <- describeBy(df$diff_double, df$month, mat = TRUE) 
     stats_by_month
 ```
 
 <!-- Means of time diference grouped by month and by member_casual -->
+### Tiempo recorrido medio en cada mes del año.
+
+A continuación presentamos el gráfico de tiempo de recorrido medio por tipo de usuario y por mes, despues del cálculo de las estadísticas agrupadas por mes y tipo de usuario.
 
 ```{r}
-    stats_by_month_by_membercasual <- describeBy(df$diff_double, list(df$month, df$member_casual), mat = TRUE)
+    stats_by_month_by_membercasual <- describeBy(df$diff_double, 
+                                        list(df$month, df$member_casual), mat = TRUE)
     stats_by_month_by_membercasual
 ```
 
-Grafico correspondiente
 
 ```{r}
+    # Gráfico tiempo medio recorrido.
     q <-  ggplot(stats_by_month_by_membercasual,aes(x = group1,
-                y = mean,
+                y = round(mean/60, 2),
                 group = group2)) +
           geom_line(aes(col = group2)) +
-          geom_point()
+          geom_point() +
+          theme(axis.text.x =element_text(angle=45),plot.title=element_text(size=14,hjust=0.5))+
+          labs(y="Tiempo Medio Recorrido (en minutos)",x="Mes",
+               title="Tiempo de recorrido en la bicicleta por meses del año", 
+               color="Tipo de Usuario") +
+          scale_color_manual(values = c(casual = "#00AFBB", member = "#FC4E07"),
+            labels = c(casual = "Ocasional", member = "Suscriptor"))
+          
+          
     q
 ```
-Aqui vemos claramente como la media del tiempo recorrido en bicicleta por los ciclistas ocasionales es mucho mayor que en los ciclistas que tienen una suscripcion, en todas las meses del año. Ahora haría falta saber si hay una relación significativa entre el tiempo de uso de la bicicleta y el ser ciclista ocasional o tener una suscripcion. O sea, tendremos que ver si el tiempo de uso de la bicicleta puede predecir si el ciclista es ocasional o suscriptor.
+Aqui vemos claramente como el tiempo medio recorrido en bicicleta por los ciclistas ocasionales es mucho mayor que el tiempo medio recorrido por los ciclistas que tienen una suscripcion anual, en todas las meses del año. 
 
-## Test estadístico ANOVA para modelar la variable tiempo de uso de la bicicleta en funcion del tipo de usuario (ocasional, suscriptor).
+Ahora haría falta saber si hay una relación significativa entre el tiempo de uso de la bicicleta y el ser ciclista ocasional o tener una suscripcion. O sea, tendremos que ver si el tiempo de uso de la bicicleta puede predecir si el ciclista es ocasional o suscriptor.
+
+## Test estadístico ANOVA para modelar la variable tiempo recorrido en bicicleta en funcion del tipo de usuario (ocasional, suscriptor).
 
 ```{r}
    # Test estadístico ANOVA
     result <- aov(diff_double ~ member_casual, data = df)
     summary(result)
 ```
-El valor F, que es muy alto, nos viene a indicar que es probable que la variación de la variable tiempo de uso de la bicicleta causada por la variable tipo de usuario sea real y no debida al azar.
+El valor F, que es muy alto, nos viene a indicar que es probable que la variación de la variable tiempo recorrido en bicicleta causada por la variable tipo de usuario sea real y no debida al azar.
 
-Lo cual queda confirmado por el valor de p, que es extremadamente pequeño (p=0.0000000000000002). Este valor describe la probabilidad de hallar un determinado conjunto de observaciones si la hipótesis nula fuera cierta, o sea, que no hubiera ninguna relación entre las variables.
-Cuanto mas pequeño es el valor p , mas probable es el rechazar la hipótesis nula y aceptar la alternativa, esto es, que hay relación entre las dos variables. Como el valor p es extremadamente pequeño, podemos concluir que el tiempo de uso de la bicicleta (la diferencia entre el momento en que se coge la bicicleta y el momento en que se deja) viene causada por el tipo de usuario.
-Sin embargo tenemos que tener en cuenta que la varianza residual es muy alta; esto es, hay mucha parte de la variación en el tiempo de uso de la bicicleta que no es explicada por la variable tipo de usuario.
-
-# COMPARTIR
+**Lo cual queda confirmado por el valor de p, que es extremadamente pequeño (p=0.0000000000000002). Este valor describe la probabilidad de hallar un determinado conjunto de observaciones si la hipótesis nula fuera cierta, o sea, que no hubiera ninguna relación entre las variables.
+Cuanto mas pequeño es el valor p , mas probable es el rechazar la hipótesis nula y aceptar la alternativa, esto es, el de la existencia de relación entre las dos variables. Como el valor p es extremadamente pequeño, podemos concluir que el tiempo recorrido en bicicleta (la diferencia entre el momento en que se coge la bicicleta y el momento en que se deja) viene causada por el tipo de usuario.
+Sin embargo tenemos que tener en cuenta que la varianza residual es muy alta; esto es, hay mucha parte de la variación en el tiempo de uso de la bicicleta que no es explicada por la variable tipo de usuario**.
 
 # ACTUAR
 
+Como hemos visto en los gráficos anteriores, los ciclistas ocasionales tienen un mayor tiempo de recorrido cuando cogen una bicileta que los ciclistas con suscripción. Y eso en todos los meses del año.
+
+Por otra parte el test ANOVA nos indica que hay una relación significativa entre el tipo de usuario (ocasional o suscriptor) y el tiempo de recorrido con la bicicleta, o lo que es lo mismo, que podemos modelar o predecir el tiempo que se va a recorrer en bicicleta segun que el usuario sea ciclista ocasional o ciclista con suscripción.
+
+**Con ello podemos concluir que aunque es verdad que hay una diferencia entre los dos tipos de ciclistas, esta diferencia es en sentido contrario al que pensaba la directora de marketing, puesto que el negocio estaría en los ciclistas ocasionales que hacen un mayor recorrido cada vez que cogen la bicicleta**.
+
+**Sin embargo este resultado habría que tomarlo con mucha precaución, como nos indica la elevada varianza residual en el test ANOVA.Lo cual indica que hay una parte elevada de la variación en la variable tiempo de uso o recorrido que está sin explicar**.
+
+**En conclusion podriamos afirmar que con los datos presentes no podemos concretar cual debería ser la actuación, y deberíamos recabar mas datos. Tal vez realizando una encuesta donde recoger datos de edad, género, profesión, etc**.
+
+------------------------------------------------------------------------------------------------------------------------------
+
+# APENDICE CODIGO R
+
+## Librerias que se aplican
+
+```
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(data.table)
+library(lubridate)
+library(generics)
+library(stringi)
+library(descriptr)
+library(psych)
+```
+
+## Rutas a los 12 ficheros de datos
+
+```
+  list_files <- list.files("~/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS", 
+                            full.names= TRUE)
+  list_files
+```
+
+## Lista de marcos de datos derviados de cada fichero en la lista anterior
+
+```
+    result <- lapply(list_files,
+                 function(x){
+                   df <- read_csv(x)
+                   df$month <- x
+                   df$month <- stri_replace_all_regex(df$month,
+                                      pattern=c('~/CURSO_DATA_ANALYSIS/Caso_Práctico/DATA_12MONTHS/',   
+                                                '-divvy-tripdata.csv','-divvy-publictripdata.csv'),
+                                      replacement=c('', '', '' ),
+                                      vectorize=FALSE)
+                   df$diff <- df$ended_at - df$started_at
+                   df$diff_double <- as.double(df$diff, units="auto")
+                   df$diff_format <- hms::hms(seconds_to_period(df$diff))
+                   df
+                 }
+)
+```
+
+## Marco de datos único resultante del la fusion de en la lista de marcos anterior.
+
+```
+    df <- do.call(rbind,result)
+```
+
+## Eliminación de los registros cuya diferencia entre el punto de partida y el punto de llegada es 0 o -1.
+
+```
+    df <- subset(df, !sign(df$diff_double)==-1)
+    df <- subset(df, !sign(df$diff_double)==0)
+```
+
+## Conversion del tipo carácter al tipo factor en las variables tipo usuario y tipo bicicleta.
+
+```
+    df <- subset(df, !sign(df$diff_double)==-1)
+    df <- subset(df, !sign(df$diff_double)==0)
+```
+
+## Primera presentación datos.
+
+```
+    glimpse(df)
+    ds_screener(df)
+```
+
+## Agrupación tipo de usuario por mes
+
+```
+     by_month <- df %>%
+               group_by(month) %>%
+               count(member_casual)
+    by_month
+```
+
+## Gráfico tipo de usuario por mes
+
+```
+    my_labels <- c(casual="Ocasional" , member="Suscriptor")
+    p <- ggplot(by_month, aes(fill=member_casual,y=n,x=month )) +
+          geom_bar(position="dodge", stat="identity") +
+          scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+          theme(axis.text.x =element_text(angle=45),
+                plot.title=element_text(size=14,hjust=0.5))+
+          labs(x="Mes",y="Número de Usuarios",title="Tipo de Usuario por meses del año",
+               fill="Tipo de Usuario\n") +
+          scale_fill_brewer(labels=my_labels,palette="Set1")
+    p
+```
+
+## Agrupación tipo de bicicleta por mes.
+
+```
+
+by_month_rideable_type <- df %>%
+              group_by(month) %>%
+              count(rideable_type)
+by_month_rideable_type
+```
+
+Gráfico tipo bicicleta por mes.
+
+```
+    my_labels <- c(classic_bike="Bici Clásica" , docked_bike="Bici Acoplada" ,electric_bike="Bici Eléctrica")
+    q <- ggplot(by_month_rideable_type, aes(fill=rideable_type,y=n,x=month )) +
+          geom_bar(position="dodge",stat="identity") +
+           scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+          theme(axis.text.x =element_text(angle=45),plot.title=element_text(size=14,hjust=0.5))+
+          labs(x="Mes",y="Número de Usuarios",title="Tipo de Bicicleta por meses del año",fill="Tipo de Bicicleta\n") +
+          scale_fill_brewer(labels=my_labels,palette="Set1")
+    q
+```
+
+## Estadísticas descriptivas.
+
+```
+    stats_by_month <- describeBy(df$diff_double, df$month, mat = TRUE) 
+    stats_by_month
+```
+
+## Estadísticas descriptivas por tipo de usuario y mes.
+
+```
+    stats_by_month_by_membercasual <- describeBy(df$diff_double, 
+                                        list(df$month, df$member_casual), mat = TRUE)
+    stats_by_month_by_membercasual
+```
+
+## Gráfico tiempo medio recorrido por mes.
+
+```
+    #my_labels <- c(casual="Ocasional" , member="Suscriptor")
+    q <-  ggplot(stats_by_month_by_membercasual,aes(x = group1,
+                y = round(mean/60, 2),
+                group = group2)) +
+          geom_line(aes(col = group2)) +
+          geom_point() +
+          theme(axis.text.x =element_text(angle=45),plot.title=element_text(size=14,hjust=0.5))+
+          labs(y="Tiempo Medio Recorrido (en minutos)",x="Mes",title="Tiempo de recorrido en la bicicleta por meses del año", color="Tipo de Usuario") +
+          scale_color_manual(values = c(casual = "#00AFBB", member = "#FC4E07"),
+            labels = c(casual = "Ocasional", member = "Suscriptor"))
+          
+          
+    q
+```
+
+## Test ANOVA
+
+```
+   # Test estadístico ANOVA
+    result <- aov(diff_double ~ member_casual, data = df)
+    summary(result)
+```
